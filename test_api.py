@@ -11,7 +11,7 @@ yolo.load_model()
 imgNames = yolo.file_names_from_folder(srcFolder)
 # for i, imgnam in enumerate(imgNames):
 #     print(i, imgnam )
-# imgNames = imgNames[17:]
+imgNames = imgNames[:5]
 images = yolo.load_images(imgNames)
 
 # img = images[0]
@@ -30,6 +30,7 @@ imgs = yolo.prepare_tensor_image(imgs)
 print(imgs.shape)
 preds = yolo.predict_images(imgs)
 boxes = yolo.post_process_predictions(preds)
+boxes = yolo.select_vehicles(boxes, yolo.vehicles)
 print(boxes)
 
 for i in range(len(boxes)):

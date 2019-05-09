@@ -44,8 +44,7 @@ def bbox_iou(box1, box2):
     
     return iou
 
-def predict_transform(prediction, inp_dim, anchors, num_classes, CUDA = True):
-
+def predict_transform(prediction, inp_dim, anchors, num_classes, CUDA = True):#, class_selector=None):
     
     batch_size = prediction.size(0)
     stride =  inp_dim // prediction.size(2)
@@ -57,6 +56,9 @@ def predict_transform(prediction, inp_dim, anchors, num_classes, CUDA = True):
     prediction = prediction.transpose(1,2).contiguous()
     prediction = prediction.view(batch_size, grid_size*grid_size*num_anchors, bbox_attrs)
     anchors = [(a[0]/stride, a[1]/stride) for a in anchors]
+
+    # #Remove the unknown classes
+    # prediction = prediction[:,:,class_selector]
 
     #Sigmoid the  centre_X, centre_Y. and object confidencce
     prediction[:,:,0] = torch.sigmoid(prediction[:,:,0])

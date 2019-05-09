@@ -2,7 +2,7 @@ import my_yolov3_api as yolo
 import cv2
 import numpy as np
 
-videofile = '/media/tsuman/98D2644AD2642EA61/vehicle_videos/DSC_0004.MOV'
+videofile = '/media/tsuman/98D2644AD2642EA6/vehicle_videos/DSC_0004.MOV'
 cap = cv2.VideoCapture(videofile)
 frames = -1
 yolo.load_model()

@@ -22,10 +22,15 @@ def load_classes(namesfile):
     return names
 
 classes:list = load_classes("data/coco.names")
+# classes:list = ['car','motorbike','bus','truck',]
+vehicle_names:list = ['car','motorbike','bus','truck',]
+vehicles:list = [2,3,5,7,]
+
 numclasses:int = len(classes)
 
 model:Darknet = None
 CUDA:bool = torch.cuda.is_available()
+
 
 
 def load_model():
@@ -36,6 +41,8 @@ def load_model():
     print("Network successfully loaded")
 
     model.net_info["height"] = str(imageHeight)
+    # model.set_classes(vehicles)
+    
     inp_dim:int = imageHeight
     assert inp_dim % 32 == 0  #Limit the input image size
     assert inp_dim > 32
@@ -325,3 +332,14 @@ def draw_bbox(img, boxes, factors):
             # cv2.rectangle(img_, (100,150), (150,250), color=(200,0,200), thickness=2)
 
     return img_
+
+def select_vehicles(bboxes, indices):
+    toret = []
+    for bbox in bboxes:
+        print(indices)
+        bbox_vehicles = {}
+        for clas, box in bbox.items():
+            if clas in indices:
+                bbox_vehicles[clas] = box
+        toret.append(bbox_vehicles)
+    return toret

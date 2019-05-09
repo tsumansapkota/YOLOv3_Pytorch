@@ -169,6 +169,8 @@ class Darknet(nn.Module):
         super(Darknet, self).__init__()
         self.blocks = parse_cfg(cfgfile)
         self.net_info, self.module_list = create_modules(self.blocks)
+        # self.class_selector = None
+        # self.num_classes = None
         
     def forward(self, x, CUDA):
         modules = self.blocks[1:]
@@ -214,7 +216,16 @@ class Darknet(nn.Module):
         
                 #Transform 
                 x = x.data
-                x = predict_transform(x, inp_dim, anchors, num_classes, CUDA)
+                # --------------------------------------------------------------
+                ############ Customized for Vehicle Detection System ###########
+                # if self.class_selector is not None:
+                #     # num_classes = self.num_classes
+                #     # x = x[:,:,self.class_selector]
+                #     print('outshape - ',x.shape)
+                #     print('classsel - ',self.class_selector)
+                # --------------------------------------------------------------
+
+                x = predict_transform(x, inp_dim, anchors, num_classes, CUDA) #, self.class_selector)
                 if not write:              #if no collector has been intialised. 
                     detections = x
                     write = 1
@@ -226,6 +237,10 @@ class Darknet(nn.Module):
         
         return detections
 
+    # def set_classes(self, classes:list):
+    #     indices = list(range(5))+(np.array(classes, dtype=np.int64)+5).tolist()
+    #     self.class_selector = torch.tensor(indices, dtype=torch.long)
+    #     self.num_classes = len(classes)
 
     def load_weights(self, weightfile):
         #Open the weights file
