@@ -23,8 +23,10 @@ def load_classes(namesfile):
 
 classes:list = load_classes("data/coco.names")
 # classes:list = ['car','motorbike','bus','truck',]
-vehicle_names:list = ['car','motorbike','bus','truck',]
-vehicles:list = [2,3,5,7,]
+# vehicle_names:list = ['car','motorbike','bus','truck',]
+# vehicles:list = [2,3,5,7,]
+vehicle_names:list = ['car','bus','truck',]
+vehicles:list = [2,5,7,]
 
 numclasses:int = len(classes)
 
@@ -73,17 +75,6 @@ def file_names_from_folder(folder:str):
 def save_images_to_folder(folder:str):
     if not os.path.exists(folder):
         os.makedirs(folder)
-
-def resize_bbox(bbox, magical=None):
-    '''
-    magical contains
-    0: shift to xs of bbox
-    1: shift to ys of bbox
-    2: scale to image
-    '''
-    for c, box in bbox.items():
-        print(c, box.shape)
-        print(box[:, [0,2]] )
 
 def resize_image(img, input_dim):
     img_h, img_w = img.shape[0], img.shape[1]
@@ -292,23 +283,35 @@ def post_process_predictions(predictions):
             # print('class ',i, uclas)
             # print(conf_sort_index)
 
-def draw_boxes(images, boxes, factors):
+def draw_boxes(images, boxes):
     assert len(images) == len(boxes)
-    assert len(images) == len(factors)
     for i in range(len(boxes)):
-        plotted = yolo.draw_bbox(images[i], boxes[i], factors[i])
+        plotted = draw_bbox(images[i], boxes[i])
         cv2.imwrite('det/temp/temp{}.jpg'.format(i),plotted)
 
-def draw_bbox(img, boxes, factors):
+
+def refactor_bboxes(bboxes, factors):
+    assert len(bboxes) == len(factors)
+    toret = []
+
+    for bbox, factor in zip(bboxes, factors):
+        bbox_vehicles = {}
+        for clas, box in bbox.items():
+            box[:, [0,2]] -= factor[1]
+            box[:, [1,3]] -= factor[2]
+            box /= factor[0]
+            bbox_vehicles[clas] = box
+        toret.append(bbox_vehicles)
+    return toret
+
+
+def draw_bbox(img, boxes):
     # BGR -> RGB | H X W X C -> C X H X W  inverse opration
     img_ = img.astype(np.uint8)
     # cv2.imwrite('temp1.jpg', img_)
     # img_ = img.copy()
-    print(img_.shape)
+    # print(img_.shape)
     for clas, box in boxes.items():
-        box[:, [0,2]] -= factors[1]
-        box[:, [1,3]] -= factors[2]
-        box /= factors[0]
         box = box.numpy().astype(int)
         # print(clas, box)
         # cv2.rectangle(img, box[:,:2], box[:,2:4], color=(200,200,200))
@@ -336,10 +339,34 @@ def draw_bbox(img, boxes, factors):
 def select_objects(bboxes, indices):
     toret = []
     for bbox in bboxes:
-        print(indices)
+        # print(indices)
         bbox_vehicles = {}
         for clas, box in bbox.items():
             if clas in indices:
                 bbox_vehicles[clas] = box
         toret.append(bbox_vehicles)
     return toret
+
+def select_boxes_below(bboxes, below=800,):
+    toret = []
+    for bbox in bboxes:
+        bbox_vehicles = {}
+        for clas, box in bbox.items():
+            mask = box[:,3] > below
+            box = box[mask]
+            if len(box) == 0:
+                continue
+            bbox_vehicles[clas] = box
+        toret.append(bbox_vehicles)
+    return toret
+
+def save_bbox_image(image, bbox, start:int=1):
+
+    for clas, box in bbox.items():
+        box = box.numpy().astype(int)
+        for b in box:
+            b[b<0.]=0.
+            crop_img = image[b[1]:b[3] ,b[0]:b[2] ,  :]
+            cv2.imwrite(f'det/vehicle_images/{start}_img.png',crop_img)
+            start+=1
+    return start
