@@ -1,3 +1,4 @@
 det/
 __pycache__/
 data/yolov3.weights
+.vscode/
