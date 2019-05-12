@@ -30,7 +30,7 @@ imgs = yolo.prepare_tensor_image(imgs)
 print(imgs.shape)
 preds = yolo.predict_images(imgs)
 boxes = yolo.post_process_predictions(preds)
-boxes = yolo.select_vehicles(boxes, yolo.vehicles)
+boxes = yolo.select_objects(boxes, yolo.vehicles)
 print(boxes)
 
 for i in range(len(boxes)):

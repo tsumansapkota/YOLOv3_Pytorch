@@ -333,7 +333,7 @@ def draw_bbox(img, boxes, factors):
 
     return img_
 
-def select_vehicles(bboxes, indices):
+def select_objects(bboxes, indices):
     toret = []
     for bbox in bboxes:
         print(indices)
