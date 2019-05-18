@@ -197,6 +197,7 @@ def post_process_predictions(predictions):
     toreturn = []
 
     for prediction in predictions:
+        
         # threshold the confidence
         conf_mask = (prediction[:,4] > minConfidence)
         prediction = prediction[conf_mask]
@@ -210,6 +211,10 @@ def post_process_predictions(predictions):
         confidence = prediction[:, 4]
         prediction = prediction[:, 5:5+numclasses]
         # print(conf_mask.shape, prediction.shape)
+        
+        # print(prediction.shape, prediction)
+        if len(prediction) == 0:
+            continue
 
         max_conf, arg_max_conf = torch.max(prediction, dim=1)
         # print(max_conf, arg_max_conf)
