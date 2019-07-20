@@ -8,12 +8,12 @@ import pickle as pkl
 import random
 
 
-cfgFileName:str = 'cfg/yolov3.cfg'
+cfgFileName:str = 'data/yolov3.cfg'
 weightsFileName:str = 'data/yolov3.weights' #download from : https://pjreddie.com/media/files/yolov3.weights
 imageHeight:int = 416
 imgsize:tuple = (imageHeight, imageHeight)
-minConfidence:float = 0.5
-nms_conf:float = 0.4
+minConfidence:float = 0.6#0.5
+nms_conf:float = 0.6#0.4
 colors:list = pkl.load(open("data/pallete", "rb"))
 
 def load_classes(namesfile):
@@ -37,7 +37,7 @@ CUDA:bool = torch.cuda.is_available()
 
 def load_model():
     global model    
-    print("Loading network.....")
+    print("Loading YOLOv3 network.....")
     model= Darknet(cfgFileName)
     model.load_weights(weightsFileName)
     print("Network successfully loaded")
@@ -90,6 +90,7 @@ def resize_image(img, input_dim):
     shift_h = (h-new_h)//2
     shift_w = (w-new_w)//2
     canvas[(h-new_h)//2:(h-new_h)//2 + new_h,(w-new_w)//2:(w-new_w)//2 + new_w,  :] = resized_image
+    # BGR -> RGB | H X W C -> C X H X W 
     img = canvas[:,:,::-1].transpose((2,0,1)).copy()
     return img, (rescale_factor, shift_w, shift_h)
 
@@ -292,7 +293,9 @@ def draw_boxes(images, boxes):
     assert len(images) == len(boxes)
     for i in range(len(boxes)):
         plotted = draw_bbox(images[i], boxes[i])
-        cv2.imwrite('det/temp/temp{}.jpg'.format(i),plotted)
+        images[i] = plotted
+        # cv2.imwrite('det/temp/temp{}.jpg'.format(i),plotted)
+    return images
 
 
 def refactor_bboxes(bboxes, factors):
@@ -365,7 +368,7 @@ def select_boxes_below(bboxes, below=800,):
         toret.append(bbox_vehicles)
     return toret
 
-def save_bbox_image(image, bbox, start:int=1):
+def save_bbox_image(image, bbox, start:int=0):
 
     for clas, box in bbox.items():
         box = box.numpy().astype(int)
@@ -375,3 +378,19 @@ def save_bbox_image(image, bbox, start:int=1):
             cv2.imwrite(f'det/vehicle_images/{start}_img.png',crop_img)
             start+=1
     return start
+
+def get_bbox_image(image, bbox, return_bbox=False):
+
+    img_list = []
+    bbox_list = []
+    for clas, box in bbox.items():
+        box = box.numpy().astype(int)
+        for b in box:
+            b[b<0.]=0.
+            crop_img = image[b[1]:b[3] ,b[0]:b[2] ,  :]
+            img_list.append(crop_img)
+            bbox_list.append(b)
+    if return_bbox:
+        return img_list, bbox_list
+    else:
+        return img_list
